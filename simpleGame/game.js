@@ -238,7 +238,7 @@ class Counter {
   counterRight() {
     c.font = "40px Arial";
     c.fillStyle = '#000'
-    c.fillText( `${this.pointsLeft}`, this.x + 30, this.y + 45);
+    c.fillText( `${this.pointsRight}`, this.x + 30, this.y + 45);
   }
 
 }
@@ -247,11 +247,6 @@ class Game {
   constructor() {
 
     this.initOne = true
-  }
-  init(){
-
-
-    this.start()
   }
   start() {
 
@@ -266,15 +261,42 @@ class Game {
     })
     
   }
+  newGame( b = []) {
+
+    balls.splice(0, 1)
+    setTimeout( () => {
+      balls.push( new Ball())
+      
+    }, 1000)
+
+  }
+  running() {
+
+  }
+  addPoint( b, c ) {
+
+    if ( b.x + b.radius > canvas.width ) {
+      c.pointsLeft += 1
+      this.newGame(  )
+    }
+    if ( b.x - b.radius <= 0 ) {
+      c.pointsRight += 1
+      this.newGame(  )
+    }
+
+  }
 }
 
 var game = new Game()
-game.init()
+game.start()
 
 
 var counter = new Counter()
 var court = new Court()
-var ball = new Ball()
+
+var balls = [ new Ball() ] 
+
+
 var players = [
   new Player( 100 , canvas.height / 2, 87, 83),
   new Player( canvas.width - 100, canvas.height / 2, 38, 40)
@@ -282,16 +304,22 @@ var players = [
 players.forEach( p => p.init())
 court.update()
 counter.draw()
-ball.draw( players )
+
+balls.forEach( b => b.draw() )
 
 
 function animate () {
+
+  for ( let i = 0; i < balls.length; i++) {
+    game.addPoint( balls[i], counter)
+    
+  }
   requestAnimationFrame( animate )
   c.clearRect( 0, 0, canvas.width, canvas.height)
   court.update()
   counter.update()
   players.forEach( p => p.update( players ))
-  ball.update( players )
+  balls.forEach( b => b.update( players) )
 }
 
 
