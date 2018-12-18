@@ -173,8 +173,8 @@ class Ball {
     this.y = y || canvas.height / 2
     this.radius = radius || 6
     this.color = color || '#fff'
-    this.dy = (Math.random() - 0.5 ) * 4
-    this.dx = randomDirection() * 4
+    this.dy = (Math.random() - 0.5 ) * 13
+    this.dx = randomDirection() * 13
   }
   draw() {
     c.beginPath()
