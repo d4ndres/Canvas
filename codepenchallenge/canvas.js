@@ -1,0 +1,135 @@
+var n_stars = 150
+var colors = [ '#176ab6', '#fb9b39']
+for ( let i = 0; i < 98; i++) {
+  colors.push( '#fff')
+}
+
+var canvas = document.querySelector('canvas')
+canvas.width = document.body.offsetWidth 
+canvas.height = document.body.offsetHeight 
+
+window.addEventListener('resize', () => {
+  canvas.width = document.body.offsetWidth 
+  canvas.height = document.body.offsetHeight 
+})
+
+
+var c = canvas.getContext('2d')
+
+const randomInt = ( max, min) => Math.floor( Math.random() * (max - min) + min)
+
+var bg = c.createRadialGradient( canvas.width/ 2, canvas.height * 3, canvas.height ,canvas.width/ 2,canvas.height , canvas.height * 4);
+bg.addColorStop(0,"#32465E");
+bg.addColorStop(.4,"#000814");
+bg.addColorStop(.8,"#000814");
+bg.addColorStop(1,"#000");
+
+class Star {
+  constructor( x, y, radius, color) {
+    this.x = x || randomInt( 0, canvas.width)
+    this.y = y || randomInt( 0, canvas.height)
+    this.radius = radius || Math.random() * 1.1
+    this.color = color || colors[randomInt(0, colors.length)]
+    this.dy = -Math.random() * .05
+  }
+  draw () {
+    c.beginPath()
+    c.arc( this.x, this.y, this.radius, 0, Math.PI *2 )
+    c.shadowBlur = randomInt( 3, 15)
+    c.shadowColor = this.color
+    c.strokeStyle = this.color
+    c.fillStyle = 'rgba( 255, 255, 255, .5)'
+    c.fill()
+    c.stroke()
+    c.closePath()
+  }
+  update( arrayStars = [] ) {
+    if ( this.y - this.radius < 0 ) this.createNewStar( arrayStars )
+    
+    this.y += this.dy
+    this.draw()
+  }
+  createNewStar( arrayStars = [] ) {
+    let i = arrayStars.indexOf( this )
+    arrayStars.splice( i, 1)
+    arrayStars.push( new Star( false, canvas.height + 5))
+  }
+}
+
+
+
+var flames = document.getElementById('grow-flames')
+var particles = []
+
+var stars = []
+function init() {
+  for( let i = 0; i < n_stars; i++ ) {
+    stars.push( new Star( ) )
+  }
+  flames.addEventListener( 'click', outParticles )
+  addEventListener( 'resize', outParticles )
+  setInterval( outParticles, 1000)
+}
+function outParticles() {
+  for ( let i = 0; i < 20; i++) {
+      particles.push( new Particle( canvas.width / 2, canvas.height/ 2))
+  }
+}
+init()
+
+
+
+// ---------------------------------
+function getDistance(ob1, ob2) {
+  let x = ob1.x - ob2.x
+  let y = ob1.y - ob2.y
+  return Math.sqrt( x*x + y*y)
+}
+
+
+class Particle {
+  constructor( x, y){
+    this.x = x
+    this.y = y
+    this.origin = { x: x, y: y}
+    this.d = undefined
+    this.dx = ( Math.random() -0.5) * 3
+    this.dy = -Math.random() * 3
+  }  
+  draw() {
+    c.fillStyle = `rgba(236,83,0,${ 1 - this.d / 100})`  
+    c.beginPath()
+    c.arc( this.x, this.y, 2,2 * Math.PI, 0, true)
+    c.fill()
+    c.closePath()
+  }
+  
+  deadParticle( arraySelf = []  ) {
+    this.d = getDistance( this, this.origin )
+    if ( this.d > 150) {
+      let i = arraySelf.indexOf( this )
+      arraySelf.splice( i, 1)  
+    }
+  
+  }
+  update( array = []) {
+   this.deadParticle( array )
+    
+    
+    this.x += this.dx
+    this.y += this.dy
+    
+    this.draw()
+  }
+}
+
+
+function animate() {
+  requestAnimationFrame( animate)
+  c.clearRect( 0, 0, canvas.width, canvas.height)
+  c.fillStyle = bg
+  c.fillRect(0, 0, canvas.width, canvas.height)
+  stars.forEach( s => s.update( stars ))
+  particles.forEach( p => p.update( particles ))
+}
+animate()

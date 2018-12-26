@@ -34,13 +34,13 @@ class Particle {
     for ( let i = 0; i < array.length; i++) {
       let d = getDistance( this, array[i])
       if ( d < 70 ) {
-        c.beginPath()
-        c.moveTo( this.x, this.y)
-        c.lineTo( array[i].x, array[i].y)
-        c.lineWidth = .1
-        c.strokeStyle = '#fff'
-        c.stroke()
-        c.closePath()
+          c.beginPath()
+          c.moveTo( this.x, this.y)
+          c.lineWidth = .3
+          c.lineTo( particles[i].x, particles[i].y)
+          c.strokeStyle = `rgba( 255, 255 ,255, ${ 1 - (d / 70)  })` 
+          c.stroke()
+          c.closePath()
       }
     }
     
