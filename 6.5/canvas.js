@@ -6,16 +6,16 @@ function getDistance( x1, y1, x2, y2) {
   return Math.sqrt( x*x + y*y )
 }
 function getSpeed(ob1, ob2) {
-  let obs = {}// representa vector posicion
-	obs.x = ob2.x - ob1.x
-	obs.y = ob2.y - ob1.y
-	obs.falseY = -ob2.y + ob1.y // se ajusta all plano no carteciano
-	obs.h = Math.sqrt( Math.pow( obs.x, 2) + Math.pow( obs.y, 2))
+  let obs = {}
+  obs.x = ob2.x - ob1.x
+  obs.y = ob2.y - ob1.y
+  obs.falseY = -ob2.y + ob1.y 
+  obs.h = Math.sqrt( Math.pow( obs.x, 2) + Math.pow( obs.y, 2))
   obs.uX = obs.x / obs.h
   obs.uY = obs.y / obs.h
-	obs.angle = Math.abs( Math.atan( obs.falseY / obs.x) )
+  obs.angle = Math.abs( Math.atan( obs.falseY / obs.x) )
 
-  let vv = {}// representa vetor velocidad
+  let vv = {}
   vv.cx = ob1.dx
   vv.cy = ob1.dy
   vv.h = Math.sqrt( Math.pow( vv.cx, 2) + Math.pow( vv.cy, 2))
@@ -25,25 +25,28 @@ function getSpeed(ob1, ob2) {
   vv.uY = vv.cy / vv.h
   vv.dx = obs.uX * vv.h
   vv.dy = obs.uY * vv.h
-  return vv//vector velocidad que se sumara 
+  return vv
 }
+var colors = [
+  `rgba(255, 82, 82,1.0)`,
+  `rgba(255, 177, 66,1.0)`,
+  `rgba(33, 140, 116,1.0)`,
+  `rgba(255, 218, 121,1.0)`
+]
 
-
-
-//global
 
 var canvas = document.querySelector( 'canvas')
-// get canvas
+canvas.style.background = '#000'
 
 var _w, _h
 function refreshSize() {
   _w = canvas.width = innerWidth
   _h = canvas.height = innerHeight
 }; refreshSize();
-// set width and height to canvas
+
 
 var c = canvas.getContext( '2d')
-// get context now you can draw from here 
+
 
 class Particle {
   constructor( x, y, radius){
@@ -52,12 +55,19 @@ class Particle {
     this.radius = radius
     this.dx = randomInt( -5, 5)
     this.dy = randomInt( -5, 5)
-    this.isImpact = true //true para desarrollo 
+    this.isImpact = false
+    this.color = colors[ randomInt(0, colors.length)]
+    this.opacity = 0
   }
-  draw() {
+  draw( d = 0) {
     c.beginPath()
     c.arc( this.x, this.y, this.radius, 0, PI * 2, true)
-    c.strokeStyle = '#000'
+    c.save()
+    c.globalAlpha = this.opacity
+    c.fillStyle = this.color
+    c.fill()
+    c.restore()
+    c.strokeStyle = this.color
     c.stroke()
     c.closePath()
   }
@@ -66,7 +76,7 @@ class Particle {
     if ( this.x + this.radius + Math.abs (this.dx) > _w ||
          this.x - this.radius - Math.abs (this.dx) < 0) this.dx  = -this.dx 
     
-		if ( this.y + this.radius + Math.abs (this.dy) > _h ||
+    if ( this.y + this.radius + Math.abs (this.dy) > _h ||
          this.y - this.radius - Math.abs (this.dy) < 0) this.dy  = -this.dy 
     this.x += this.dx
     this.y += this.dy
@@ -81,8 +91,7 @@ class Particle {
                           this.x + this.dx,
                           this.y + this.dy
                           )
-          c.beginPath()
-      
+
       if ( this.isImpact ) {
         c.moveTo( this.x, this.y)
         c.lineTo( others[i].x, others[i].y)
@@ -91,7 +100,6 @@ class Particle {
         c.closePath()
       }
 
-      
       if ( d - this.radius * 2 < 0) {
         this.speedChange( others[i] )
       }
@@ -100,7 +108,7 @@ class Particle {
   }
   speedChange( thing = {} ) {
 
-    this.isImpact = true 
+    // this.isImpact = true 
 
     let vv = getSpeed(this, thing)
     thing.dx += vv.dx
@@ -115,10 +123,22 @@ class Particle {
     c.stroke()
     c.closePath()
   }
+  fill() {
+      let d = getDistance( this.x,this.y,
+                           mouse.x ,mouse.y )
+      if ( d < 100 ) {
+        this.opacity += 0.03
+      } else if ( this.opacity > 0) {
+        this.opacity += -0.03
+        
+        this.opacity = Math.max( 0, this.opacity)
+      }
+  }
   update( array = [] ) {
     this.impactWatcher( array )
     if ( this.isImpact ) this.showVector()
     this.move()
+    this.fill()
     this.draw()
   }
 }
@@ -126,8 +146,8 @@ class Particle {
 
 var particles = new Array()
 !function init() {
-  for ( let i = 0; i < 3; i++){
-    let radius = 50
+  for ( let i = 0; i < 50; i++){
+    let radius = 15
     let x = randomInt( radius , _w - radius )
     let y = randomInt( radius , _h - radius )
     particles.push( new Particle( x, y, radius))
@@ -151,14 +171,22 @@ var particles = new Array()
     }
   } 
   
-
+  
 }();
-// a IIFE 
+
+let mouse = {x : undefined, y: undefined}
+canvas.addEventListener( 'mousemove', (ev) =>{
+  mouse.x = ev.x
+  mouse.y = ev.y
+})
+
+
+
 
 function loop() {
   requestAnimationFrame(loop)
   refreshSize()
   
+
   particles.forEach( p => p.update( particles ))
 };loop();
-// loop to animate
